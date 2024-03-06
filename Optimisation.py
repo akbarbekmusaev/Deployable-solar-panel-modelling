@@ -95,4 +95,4 @@ maxdist = 60
 # error = findmaxerror(maxdist, Hlim, p)
 
 # Uncomment the line below if you want to create an animation
-# ani = anim(p)
+ani = anim(p)
