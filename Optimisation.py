@@ -92,7 +92,7 @@ p = [9.81, 12, 4000, 100, B, H, S, BC, BP]
 maxdist = 60
 
 # Uncomment the line below if you want to find maximum error for a given distance
-error = findmaxerror(maxdist, Hlim, p)
+# error = findmaxerror(maxdist, Hlim, p)
 
 # Uncomment the line below if you want to create an animation
-#ani = anim(p)
+ani = anim(p)
