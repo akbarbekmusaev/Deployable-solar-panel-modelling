@@ -80,8 +80,8 @@ stepsize2 = 0.1
 res = 0.1
 
 # Uncomment the line below if you want to find parameters for maximum distance
-# finalparams = findmaxdistpar(Hlim, B)
-
+finalparams = findmaxdistpar(Hlim, B)
+#test
 # Define initial parameters
 H = 6.3
 S = 6.1
@@ -95,4 +95,4 @@ maxdist = 60
 # error = findmaxerror(maxdist, Hlim, p)
 
 # Uncomment the line below if you want to create an animation
-ani = anim(p)
+#ani = anim(p)
