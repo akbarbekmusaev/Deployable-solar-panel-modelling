@@ -25,5 +25,4 @@ v = sol.y[1, :]
 
 plt.plot(sol.t, x)
 
-#ani = animate_pendulum(sol.t, x)
-
+ani = animate_pendulum(sol.t, x)

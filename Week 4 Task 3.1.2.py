@@ -3,7 +3,6 @@ from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 from Pendulum_Animations import animate_pendulum
 
-
 #constants
 g = 9.81
 l = 0.75
@@ -35,7 +34,5 @@ plt.plot(a, finalVel)
 
 
 
-#plt.plot(sol.t, x)
-
-#ani = animate_pendulum(sol.t, x)
-
+plt.plot(sol.t, x)
+ani = animate_pendulum(sol.t, x)

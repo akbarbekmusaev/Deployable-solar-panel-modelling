@@ -1,5 +1,6 @@
-import numpy as npfd
+import numpy as np
 import time
+import matplotlib.pyplot as plt
 
 
 h = [10**-1, 10**-2, 10**-3, 10**-4, 1.000001*10**-5] #stepsize
@@ -56,3 +57,5 @@ ax2.set_title('fin vel vs log h')
 fig, ax3 = plt.subplots()
 ax3.plot(log_h, exec_time)
 ax3.set_title('exec time vs log h')
+
+plt.show()
