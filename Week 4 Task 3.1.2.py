@@ -2,6 +2,8 @@ import numpy as np
 from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 from Pendulum_Animations import animate_pendulum
+from matplotlib.animation import PillowWriter
+import webbrowser
 
 #constants
 g = 9.81
@@ -35,4 +37,10 @@ plt.plot(a, finalVel)
 
 
 plt.plot(sol.t, x)
+plt.show()
 ani = animate_pendulum(sol.t, x)
+# Save the animation as a GIF
+ani.save('animation.gif', writer=PillowWriter(fps=30))
+
+# Open the GIF in the default web browser
+webbrowser.open('animation.gif')
