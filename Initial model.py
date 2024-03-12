@@ -42,7 +42,7 @@ R_cm = (M_solar * R_solar + M_driving * R_driving + M_green * R_green + M_frame 
 #Moment
 Moment = M_total * g * R_cm + 0.2
 
-def create_animation_pycharm(sol, theta_finishing):
+def create_animation(sol, theta_finishing):
     T_event = sol.t_events[0][0]
     t_animation = sol.t[sol.t <= T_event]
     x_animation = sol.y[0, :][sol.t <= T_event] + np.pi/2
@@ -50,7 +50,7 @@ def create_animation_pycharm(sol, theta_finishing):
     ani.save('animation.gif', writer=PillowWriter(fps=30))
     webbrowser.open('animation.gif')
     
-def create_animation(sol, theta_finishing):
+def create_animation_spyder(sol, theta_finishing):
     ani = animate_pendulum(sol.t, sol.y[0, :] +np.pi/2)
     return ani
     
@@ -82,6 +82,6 @@ sol = solve_ivp(f, (0, T), [theta, thetaspeed], rtol=0.00001, events=my_eventsto
 x = sol.y[0, :]
 v = sol.y[1, :]
 create_plot(x, v, theta_finishing)
-#create_animation(sol, theta_finishing)
-create_animation_pycharm(sol, theta_finishing)
+create_animation_spyder(sol, theta_finishing)
+create_animation(sol, theta_finishing)
 
