@@ -12,7 +12,7 @@ g = 9.81
 # initial conditions
 theta = 0
 thetaspeed = 0
-T = 6
+T = 15
 def phi(theta):
     phi = theta - np.arcsin(100 / 500)
     return phi
@@ -40,7 +40,7 @@ M_total = M_solar + M_driving + M_green + M_frame
 R_cm = (M_solar * R_solar + M_driving * R_driving + M_green * R_green + M_frame * R_frame) / M_total
 
 #Moment
-Moment = M_total * g * R_cm + 0.2
+Moment = M_total * g * R_cm+0.1
 
 def create_animation(sol, theta_finishing):
     T_event = sol.t_events[0][0]
@@ -82,6 +82,6 @@ sol = solve_ivp(f, (0, T), [theta, thetaspeed], rtol=0.00001, events=my_eventsto
 x = sol.y[0, :]
 v = sol.y[1, :]
 create_plot(x, v, theta_finishing)
-create_animation_spyder(sol, theta_finishing)
-create_animation(sol, theta_finishing)
+#create_animation_spyder(sol, theta_finishing)
+#create_animation(sol, theta_finishing)
 
