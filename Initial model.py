@@ -10,7 +10,7 @@ import webbrowser
 theta_finishing = 120*(np.pi/180)
 g = 9.81
 # initial conditions
-theta = 0
+theta = 30
 thetaspeed = 0
 T = 15
 def phi(theta):
@@ -85,3 +85,4 @@ create_plot(x, v, theta_finishing)
 #create_animation_spyder(sol, theta_finishing)
 #create_animation(sol, theta_finishing)
 
+print(M_total)
