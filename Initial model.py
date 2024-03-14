@@ -122,7 +122,7 @@ def TimeAndPositionOfModel_plot(x, v, theta_finishing):
     axs[1].set_ylabel('Angular velocity')
     axs[1].legend()
     axs[1].set_title('Angular velocity of the model over Time')
-    plt.subplots_adjust(hspace=1)
+    plt.subplots_adjust(hspace=0.5)
     plt.show()
 
 # Define function to plot change of CoM with theta
@@ -188,11 +188,12 @@ v = sol.y[1, :]
 
 # Plot the position and speed of the model against time
 TimeAndPositionOfModel_plot(x, v, theta_finishing)
+
 # Plot the motor values
 create_motor_plot(sol)
 
 # Plot the change of CoM with theta
-#plot_com_change()
+plot_com_change()
 
 # Print the results
 if sol.t_events[0].size == 0:
