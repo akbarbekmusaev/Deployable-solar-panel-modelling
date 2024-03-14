@@ -10,7 +10,7 @@ import webbrowser
 theta_finishing = 90*(np.pi/180)
 g = 9.81
 # initial conditions
-theta = 0
+theta = 30
 thetaspeed = 0
 T = 15
 Tstall = 0.69
@@ -101,3 +101,4 @@ print("Moment_of_inertia: " + Moment_of_inertia.__str__())
 #create_animation_spyder(sol, theta_finishing)
 create_animation(sol, theta_finishing)
 
+print(M_total)
