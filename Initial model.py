@@ -6,10 +6,10 @@ from matplotlib.animation import PillowWriter
 import webbrowser
 
 # constants
-theta_finishing = np.pi/18
+theta_finishing = np.pi/2
 g = 9.81
 # initial conditions
-theta_initial = np.pi/2
+theta_initial = np.pi/18
 speed_intial = 0
 T = 10
 T_stall = 0.19
@@ -167,45 +167,57 @@ def create_motor_plot(sol):
     plt.show()
 
 # Define function for differential equation
-def f(t, z):
+def opening(t, z):
+    difz = [z[1],
+            (torque_out(z[1]) / (M_total * centre_of_mass(z[0]) ** 2)) - (g * np.cos(z[0])) / centre_of_mass(z[0])]
+    return difz
+
+def closing(t, z):
     difz = [z[1],
             (-torque_out(z[1]) / (M_total * centre_of_mass(z[0]) ** 2)) - (g * np.cos(z[0])) / centre_of_mass(z[0])]
     return difz
 
 # Define event to stop the simulation when the pendulum reaches the finishing angle
-def my_eventstop(t, z):
+def my_eventstopopening(t, z):
     return z[0] - theta_finishing;
 
-my_eventstop.terminal = True
-my_eventstop.direction = -1
+my_eventstopopening.terminal = True
+my_eventstopopening.direction = 1
 
-# Solve the differential equation
-sol = solve_ivp(f, (0, T), [theta_initial, speed_intial], rtol=0.000001, events=(my_eventstop))
+def my_eventstopclosing(t, z):
+    return z[0] - theta_initial;
+
+my_eventstopclosing.terminal = True
+my_eventstopclosing.direction = -1
+
+# Solve the differential equation for opening
+sol_opening = solve_ivp(opening, (0, T), [theta_initial, speed_intial], rtol=0.000001, events=(my_eventstopopening))
+sol_closing = solve_ivp(closing, (0, T), [theta_finishing, speed_intial], rtol=0.000001, events=(my_eventstopclosing))
 
 #Extract the results
-x = sol.y[0, :]
-v = sol.y[1, :]
+x = sol_opening.y[0, :]
+v = sol_closing.y[1, :]
 
 # Plot the position and speed of the model against time
-TimeAndPositionOfModel_plot(x, v, theta_finishing)
+#TimeAndPositionOfModel_plot(x, v, theta_finishing)
 
 # Plot the motor values
-create_motor_plot(sol)
+#create_motor_plot(sol_opening)
 
 # Plot the change of CoM with theta
 #plot_com_change()
 
 # Print the results
-if sol.t_events[0].size == 0:
+if sol_opening.t_events[0].size == 0:
     print("Time to reach the finishing angle (s): Did not reach the angle")
 else:
-    print("Time to reach the finishing angle (s): " + sol.t_events[0][0].__str__())
-print("Finishing angular velocity of the model (rad/s): " + sol.y[1, -1].__str__())
-print("Finishing angular displacement of the model (rad): " + sol.y[0, -1].__str__())
-print("Finishing torque of motor (Nm): " + torque_in(sol.y[1, -1]).__str__())
-print("Finishing angular velocity of motor (RPM): " + (sol.y[1, -1] * gearRatio).__str__())
+    print("Time to reach the finishing angle (s): " + sol_opening.t_events[0][0].__str__())
+print("Finishing angular velocity of the model (rad/s): " + sol_opening.y[1, -1].__str__())
+print("Finishing angular displacement of the model (rad): " + sol_opening.y[0, -1].__str__())
+print("Finishing torque of motor (Nm): " + torque_in(sol_opening.y[1, -1]).__str__())
+print("Finishing angular velocity of motor (RPM): " + (sol_opening.y[1, -1] * gearRatio).__str__())
 print("Holding torque for the model (Nm): " + (M_total * g * centre_of_mass(theta_initial) * np.cos(theta_initial)).__str__())
 
 # Uncomment to create animations
-#create_animation_spyder(sol, theta_finishing)
-create_animation(sol, theta_finishing)
+#create_animation_spyder(sol_opening, theta_finishing)
+#create_animation(sol_opening, theta_finishing)
