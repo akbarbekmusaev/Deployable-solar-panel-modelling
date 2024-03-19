@@ -10,6 +10,7 @@ T_stall = 0.43
 omega_max = 2750
 gear_ratios = [435,440,445,455]  # List of gear ratios
 
+
 # Define function to plot time and position of model
 def TimeAndPositionOfModel_plot(sol, theta_finishing, gear_ratios):
     fig, axs = plt.subplots(2, figsize=(10, 10))
