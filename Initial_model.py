@@ -105,6 +105,8 @@ def openingmodel(theta_initial, theta_finishing, speed_initial, T_stall, omega_m
 
     # Define function to calculate input torque from motor to gearbox
     def torque_in(speed):
+        if (speed < -0.001):
+            speed = 0
         torque = -(T_stall / omega_max) * (speed * gearRatio) + T_stall
         return torque
 

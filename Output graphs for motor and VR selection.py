@@ -6,9 +6,10 @@ import numpy as np
 theta_finishing = np.pi / 2
 theta_initial = np.pi / 18
 speed_initial = 0
-T_stall = 0.43
-omega_max = 2750
-gear_ratios = [435,440,445,455]  # List of gear ratios
+T_stall = 0.69
+omega_max = 3700
+gear_ratios = [25]  # List of gear ratios
+c = 0
 
 
 # Define function to plot time and position of model
@@ -22,7 +23,7 @@ def TimeAndPositionOfModel_plot(sol, theta_finishing, gear_ratios):
     axs[1].set_title('Angular velocity of the model over Time')
 
     for gear_ratio in gear_ratios:
-        sol = openingmodel(theta_initial, theta_finishing, speed_initial, T_stall, omega_max, gear_ratio)
+        sol = openingmodel(theta_initial, theta_finishing, speed_initial, T_stall, omega_max, gear_ratio, c)
         axs[0].plot(sol.t, sol.y[0, :], label='Gear Ratio {}'.format(gear_ratio))
         axs[1].plot(sol.t, sol.y[1, :], label='Gear Ratio {}'.format(gear_ratio))
 
@@ -60,8 +61,8 @@ def plot_total_power(gear_ratios, total_powers):
     plt.show()
 
 # Main code
-sol = openingmodel(theta_initial, theta_finishing, speed_initial, T_stall, omega_max, gear_ratios[0])  # Assuming gear_ratio[0] is used for simulation
+sol = openingmodel(theta_initial, theta_finishing, speed_initial, T_stall, omega_max, gear_ratios[0], c)  # Assuming gear_ratio[0] is used for simulation
 TimeAndPositionOfModel_plot(sol, theta_finishing, gear_ratios)
-total_powers = create_motor_plot(sol, gear_ratios)
-plot_total_power(gear_ratios, total_powers)
+#total_powers = create_motor_plot(sol, gear_ratios)
+#plot_total_power(gear_ratios, total_powers)
 
