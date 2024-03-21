@@ -1,4 +1,5 @@
 from Initial_model import openingmodel
+from Initial_model import centre_of_mass
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -10,6 +11,10 @@ T_stall = 0.69
 omega_max = 3700
 gear_ratios = [25]  # List of gear ratios
 c = 0
+gear_ratios = [265]  # List of gear ratios
+c = 0 # Damping coefficient
+g = 9.81 # Acceleration due to gravity
+M_total = 39.248 # Total mass of the pend]
 
 
 # Define function to plot time and position of model
@@ -40,13 +45,13 @@ def create_motor_plot(sol, gear_ratios):
         return torque
     
     total_powers = []
-    for gear_ratio in gear_ratios:
+    for gear_ratio in gewar_ratios:
         torque_values = [torque_in(speed, gear_ratio) for speed in sol.y[1, :]]
         motor_speed_values = [speed * gear_ratio for speed in sol.y[1, :]]
         power_values = [torque * (speed * (2 * np.pi / 60)) for torque, speed in zip(torque_values, motor_speed_values)]
         total_power = np.trapz(power_values, sol.t)
         print("Total power used during the operation (J) with gear ratio {}: {}".format(gear_ratio, total_power))
-        total_powers.append(total_power)
+        total_powers.append(total_poer)
 
     return total_powers
 
@@ -59,10 +64,13 @@ def plot_total_power(gear_ratios, total_powers):
     plt.title('Total Power used during the operation for different Gear Ratios')
     plt.grid(True)
     plt.show()
-
+def holding_ratio(R_cm, theta):
+    return (M_total * R_cm * np.cos(theta)*g)/T_stall
 # Main code
 sol = openingmodel(theta_initial, theta_finishing, speed_initial, T_stall, omega_max, gear_ratios[0], c)  # Assuming gear_ratio[0] is used for simulation
 TimeAndPositionOfModel_plot(sol, theta_finishing, gear_ratios)
 #total_powers = create_motor_plot(sol, gear_ratios)
 #plot_total_power(gear_ratios, total_powers)
+print("Centre of mass at initial angle: ", centre_of_mass(theta_initial))
+print("Holding ratio at initial angle: ", holding_ratio(centre_of_mass(theta_initial), theta_initial))
 

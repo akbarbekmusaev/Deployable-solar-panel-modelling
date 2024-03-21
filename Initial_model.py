@@ -37,10 +37,17 @@ def centre_of_mass(theta):
     # and V is the vertical distance
 
     # CoM of solar panels
-    R_solar = np.sqrt((0.5 * L_solarpanel) ** 2 + L_longbeam ** 2 - L_solarpanel * L_longbeam * np.cos(phi(theta)))
-    H_solar = L_longbeam * np.cos(theta) - 0.5 * L_solarpanel * np.cos(phi(theta) - theta)
-    V_solar = np.sqrt(R_solar ** 2 - H_solar ** 2)
-    angle_solar = np.arctan(V_solar / H_solar) * 180 / np.pi
+    H_toppanel =1.5 * L_longbeam * np.cos(theta) - 0.5 * L_longbeam * np.cos(phi(theta) - theta)-0.5*L_solarpanel*np.cos(phi(theta)-theta)
+    V_toppanel = 1.5 * L_longbeam * np.sin(theta) + 0.5 * L_longbeam * np.sin(phi(theta) - theta)+0.5*L_solarpanel*np.sin(phi(theta)-theta)
+    R_toppanel = np.sqrt(H_toppanel**2+V_toppanel**2)
+
+    H_middlepanel = L_longbeam * np.cos(theta) - 0.5 * L_solarpanel * np.cos(phi(theta) - theta)
+    V_middlepanel = L_longbeam * np.sin(theta) + 0.5 * L_solarpanel * np.sin(phi(theta) - theta)
+    R_middlepanel = np.sqrt(H_middlepanel**2+V_middlepanel**2)
+
+    H_bottompanel = 0.5 * L_longbeam * np.cos(theta) + (0.5 * L_longbeam - 0.5*L_solarpanel)*np.cos(phi(theta)-theta)
+    V_bottompanel = 0.5 * L_longbeam * np.sin(theta) - (0.5 * L_longbeam - 0.5*L_solarpanel)*np.sin(phi(theta)-theta)
+    R_bottompanel = np.sqrt(H_bottompanel**2+V_bottompanel**2)
 
     # CoM of top frame
     R_frame = np.sqrt((0.5 * L_longbeam) ** 2 + L_longbeam ** 2 - L_longbeam ** 2 * np.cos(phi(theta)))
@@ -68,12 +75,10 @@ def centre_of_mass(theta):
     angle_blue = np.arctan(V_blue / H_blue) * 180 / np.pi
 
     # H centre of mass
-    H_cm = (
-                   M_panels * H_solar + M_frame * H_frame + M_driving * H_driving + M_green * H_green + M_blue * H_blue) / M_total
+    H_cm = (M_solarpanel * (H_toppanel + H_middlepanel + H_bottompanel) + M_frame * H_frame + M_driving * H_driving + M_green * H_green + M_blue * H_blue) / M_total
 
     # V centre of mass
-    V_cm = (
-                   M_panels * V_solar + M_frame * V_frame + M_driving * V_driving + M_green * V_green + M_blue * V_blue) / M_total
+    V_cm = (M_solarpanel * (V_toppanel + V_middlepanel + V_bottompanel) + M_frame * V_frame + M_driving * V_driving + M_green * V_green + M_blue * V_blue) / M_total
 
     # R centre of mass
     R_cm = np.sqrt(H_cm ** 2 + V_cm ** 2)
@@ -113,7 +118,7 @@ def openingmodel(theta_initial, theta_finishing, speed_initial, T_stall, omega_m
     # Define function for differential equation
     def opening(t, z):
         difz = [z[1],
-                (torque_out(z[1]) / (M_total * centre_of_mass(z[0]) ** 2)) - (g * np.cos(z[0])) / centre_of_mass(z[0]) - (c * z[1])/(M_total * centre_of_mass(z[0]) ** 2)]
+                (torque_out(z[1]) / (M_total * centre_of_mass(z[0]) ** 2)) - (g * np.cos(z[0])) / centre_of_mass(z[0]) - (c * z[1])/((M_total * centre_of_mass(z[0]) ** 2))]
         return difz
 
     # Define event to stop the simulation when the pendulum reaches the finishing angle
