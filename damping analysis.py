@@ -10,8 +10,10 @@ speed_initial = 0
 T_stall = 0.69
 omega_max = 3700
 gear_ratio = 270
-c = list(range(0, 300, 10))  # Damping coefficient
+c = list(range(0, 400, 20))  # Damping coefficient
 
+def rad_s_to_rpm(rad_s):
+    return (rad_s * 60) / (2 * np.pi)
 
 # Define function to plot time and position of model
 def TimeAndPositionOfModelClosing_plot(theta_finishing, c_values):
@@ -20,13 +22,13 @@ def TimeAndPositionOfModelClosing_plot(theta_finishing, c_values):
     axs[0].set_xlabel('Time')
     axs[0].set_title('Angular displacement of the model over Time')
     axs[1].set_xlabel('Time')
-    axs[1].set_ylabel('Angular velocity')
+    axs[1].set_ylabel('Angular velocity (RPM)')
     axs[1].set_title('Angular velocity of the model over Time')
 
     for c in c_values:
         sol = closingmodel(theta_finishing, theta_initial, speed_initial, T_stall, omega_max, gear_ratio, c)
         axs[0].plot(sol.t, sol.y[0, :], label='c = {}'.format(c))
-        axs[1].plot(sol.t, sol.y[1, :], label='c = {}'.format(c))
+        axs[1].plot(sol.t, rad_s_to_rpm(sol.y[1, :]), label='c = {}'.format(c))
 
     axs[0].axhline(y=theta_finishing, color='r', linestyle='--', label='Finishing Theta')
     axs[0].legend()
@@ -40,13 +42,13 @@ def TimeAndPositionOfModelOpening_plot(theta_finishing, c_values):
     axs[0].set_xlabel('Time')
     axs[0].set_title('Angular displacement of the model over Time')
     axs[1].set_xlabel('Time')
-    axs[1].set_ylabel('Angular velocity')
+    axs[1].set_ylabel('Angular velocity (RPM)')
     axs[1].set_title('Angular velocity of the model over Time')
 
     for c in c_values:
         sol = openingmodel(theta_initial, theta_finishing, speed_initial, T_stall, omega_max, gear_ratio, c)
         axs[0].plot(sol.t, sol.y[0, :], label='c = {}'.format(c))
-        axs[1].plot(sol.t, sol.y[1, :], label='c = {}'.format(c))
+        axs[1].plot(sol.t, rad_s_to_rpm(sol.y[1, :]), label='c = {}'.format(c))
 
     axs[0].axhline(y=theta_finishing, color='r', linestyle='--', label='Finishing Theta')
     axs[0].legend()

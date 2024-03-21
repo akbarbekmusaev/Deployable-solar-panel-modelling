@@ -110,7 +110,7 @@ def openingmodel(theta_initial, theta_finishing, speed_initial, T_stall, omega_m
 
     # Define function to calculate input torque from motor to gearbox
     def torque_in(speed):
-        if (speed < -0.001):
+        if speed < 0:
             speed = 0
         torque = -(T_stall / omega_max) * (speed * gearRatio) + T_stall
         return torque
@@ -118,7 +118,8 @@ def openingmodel(theta_initial, theta_finishing, speed_initial, T_stall, omega_m
     # Define function for differential equation
     def opening(t, z):
         difz = [z[1],
-                (torque_out(z[1]) / (M_total * centre_of_mass(z[0]) ** 2)) - (g * np.cos(z[0])) / centre_of_mass(z[0]) - (c * z[1])/((M_total * centre_of_mass(z[0]) ** 2))]
+                (torque_out(z[1]) / (M_total * centre_of_mass(z[0]) ** 2)) - ((g * np.cos(z[0])) / centre_of_mass(z[0])) - ((c * z[1]) / (
+                            M_total * centre_of_mass(z[0]) ** 2))]
         return difz
 
     # Define event to stop the simulation when the pendulum reaches the finishing angle
