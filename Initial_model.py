@@ -66,11 +66,45 @@ def dampertorque(c, theta, omega):
 
 def springtorque(k, theta, theta_initial):
     #initial position of the spring
-    H_initial = 0.5 * L_longbeam * np.cos(theta_initial) + 0.5 * L_shortbeam * np.cos(
+    H_initial = 0.5 * L_longbeam * np.cos(theta_initial) + 0.5 * L_longbeam * np.cos(
         phi(theta_initial) - theta_initial)
-    V_initial = 0.5 * L_longbeam * np.sin(theta_initial) - 0.5 * L_shortbeam * np.sin(
+    V_initial = 0.5 * L_longbeam * np.sin(theta_initial) - 0.5 * L_longbeam * np.sin(
         phi(theta_initial) - theta_initial)
     R_initial = np.sqrt(H_initial ** 2 + V_initial ** 2)
+    # End-point
+    H = 0.5 * L_longbeam * np.cos(theta) + 0.5 * L_longbeam * np.cos(phi(theta) - theta)
+    V = 0.5 * L_longbeam * np.sin(theta) - 0.5 * L_longbeam * np.sin(phi(theta) - theta)
+    R = np.sqrt(H ** 2 + V ** 2)
+    # Blue beam
+    R_blue = np.sqrt(L_shortbeam ** 2 + (0.5 * L_longbeam) ** 2 - L_shortbeam ** 2 * np.cos(np.pi - phi(theta)))
+    H_blue = np.sqrt(L_shortbeam ** 2 - L_base ** 2) + 0.5 * L_shortbeam * np.cos(theta)
+    V_blue = np.sqrt(R_blue ** 2 - H_blue ** 2)
+    # Green beam
+    R_green = np.sqrt(
+        (0.5 * L_longbeam) ** 2 + (0.25 * L_longbeam) ** 2 - 0.25 * L_longbeam ** 2 * np.cos(np.pi - phi(theta)))
+    H_green = 0.5 * L_longbeam * np.cos(theta) + 0.25 * L_longbeam * np.cos(phi(theta) - theta)
+    V_green = np.sqrt(R_green ** 2 - H_green ** 2)
+    # Angle a
+    H_a = H - H_blue
+    V_a = V - V_blue
+    R_a = np.sqrt(H_a ** 2 + V_a ** 2)
+    angle_a = np.arccos(((-H_a) * H + (-V_a) * V) / (R_a * R))
+    # angle b
+    H_b = H - H_green
+    V_b = V - V_green
+    R_b = np.sqrt(H_b ** 2 + V_b ** 2)
+    angle_b = np.arccos(((-H_b) * H + (-V_b) * V) / (R_b * R + 1e-10))
+
+    # Calculate displacement and torque
+    displacement = abs(R_initial - R)
+    F_magnitude = k * displacement
+
+    F_green = F_magnitude * (np.sin(angle_b) / np.sin(angle_a + angle_b))
+    Torque = F_green * L_shortbeam * np.cos(phi(theta) - np.pi / 2)
+
+    return Torque
+
+def springtorqueconstant(k, theta, theta_initial):
     # End-point
     H = 0.5 * L_longbeam * np.cos(theta) + 0.5 * L_shortbeam * np.cos(phi(theta) - theta)
     V = 0.5 * L_longbeam * np.sin(theta) - 0.5 * L_shortbeam * np.sin(phi(theta) - theta)
@@ -96,8 +130,7 @@ def springtorque(k, theta, theta_initial):
     angle_b = np.arccos(((-H_b) * H + (-V_b) * V) / (R_b * R + 1e-10))
 
     # Calculate displacement and torque
-    displacement = np.sqrt((H - H_initial) ** 2 + (V - V_initial) ** 2)
-    F_magnitude = k * displacement
+    F_magnitude = k
 
     F_green = F_magnitude * (np.sin(angle_b) / np.sin(angle_a + angle_b))
     Torque = F_green * L_shortbeam * np.cos(phi(theta) - np.pi / 2)
@@ -113,14 +146,17 @@ def centre_of_mass(theta):
     H_toppanel =1.5 * L_longbeam * np.cos(theta) - 0.5 * L_longbeam * np.cos(phi(theta) - theta)-0.5*L_solarpanel*np.cos(phi(theta)-theta)
     V_toppanel = 1.5 * L_longbeam * np.sin(theta) + 0.5 * L_longbeam * np.sin(phi(theta) - theta)+0.5*L_solarpanel*np.sin(phi(theta)-theta)
     R_toppanel = np.sqrt(H_toppanel**2+V_toppanel**2)
+    angle_toppanel = np.arctan(V_toppanel / H_toppanel) * 180 / np.pi
 
     H_middlepanel = L_longbeam * np.cos(theta) - 0.5 * L_solarpanel * np.cos(phi(theta) - theta)
     V_middlepanel = L_longbeam * np.sin(theta) + 0.5 * L_solarpanel * np.sin(phi(theta) - theta)
     R_middlepanel = np.sqrt(H_middlepanel**2+V_middlepanel**2)
+    angle_middlepanel = np.arctan(V_middlepanel / H_middlepanel) * 180 / np.pi
 
     H_bottompanel = 0.5 * L_longbeam * np.cos(theta) + (0.5 * L_longbeam - 0.5*L_solarpanel)*np.cos(phi(theta)-theta)
     V_bottompanel = 0.5 * L_longbeam * np.sin(theta) - (0.5 * L_longbeam - 0.5*L_solarpanel)*np.sin(phi(theta)-theta)
     R_bottompanel = np.sqrt(H_bottompanel**2+V_bottompanel**2)
+    angle_bottompanel = np.arctan(V_bottompanel / H_bottompanel) * 180 / np.pi
 
     # CoM of top frame
     R_frame = np.sqrt((0.5 * L_longbeam) ** 2 + L_longbeam ** 2 - L_longbeam ** 2 * np.cos(phi(theta)))
@@ -192,7 +228,7 @@ def openingmodel(theta_initial, theta_finishing, speed_initial, T_stall, omega_m
     # Define function for differential equation
     def opening(t, z):
         difz = [z[1],
-                (torque_out(z[1]) / (M_total * centre_of_mass(z[0]) ** 2)) - ((g * np.cos(z[0])) / centre_of_mass(z[0])) - (dampertorque(c, z[0], z[1])/(M_total*centre_of_mass(z[0]) ** 2)) + (springtorque(k, z[0], theta_initial) / (M_total*centre_of_mass(z[0]) ** 2))]
+                (torque_out(z[1]) / (M_total * centre_of_mass(z[0]) ** 2)) - ((g * np.cos(z[0])) / centre_of_mass(z[0])) - (dampertorque(c, z[0], z[1])/(M_total*centre_of_mass(z[0]) ** 2)) + (springtorqueconstant(k, z[0], theta_initial) / (M_total*centre_of_mass(z[0]) ** 2))]
         return difz
 
     # Define event to stop the simulation when the pendulum reaches the finishing angle
@@ -208,7 +244,7 @@ def openingmodel(theta_initial, theta_finishing, speed_initial, T_stall, omega_m
     return sol_opening
 
 
-def closingmodel(theta_initial, theta_finishing, speed_initial, T_stall, omega_max, gearRatio, c):
+def closingmodel(theta_initial, theta_finishing, speed_initial, T_stall, omega_max, gearRatio, c, k):
     # Define function to calculate output torque from gearbox to mechanism
     def torque_out(speed):
         torque = torque_in(speed) * gearRatio
@@ -222,7 +258,7 @@ def closingmodel(theta_initial, theta_finishing, speed_initial, T_stall, omega_m
     # Define function for differential equation
     def closing(t, z):
         difz = [z[1],
-                (-torque_out(z[1]) / (M_total * centre_of_mass(z[0]) ** 2)) - (g * np.cos(z[0])) / centre_of_mass(z[0]) + (dampertorque(c, z[0], z[1]) / (M_total*centre_of_mass(z[0]) ** 2))]
+                (-torque_out(z[1]) / (M_total * centre_of_mass(z[0]) ** 2)) - (g * np.cos(z[0])) / centre_of_mass(z[0]) + (dampertorque(c, z[0], z[1]) / (M_total*centre_of_mass(z[0]) ** 2)) + (springtorqueconstant(k, z[0], theta_finishing) / (M_total*centre_of_mass(z[0]) ** 2))]
         return difz
 
     # Define event to stop the simulation when the pendulum reaches the finishing angle
