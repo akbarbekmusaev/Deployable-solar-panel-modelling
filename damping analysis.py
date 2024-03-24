@@ -11,8 +11,8 @@ speed_initial = 0
 T_stall = 0.69
 omega_max = 3700
 gear_ratio = 270
-c_values = [1000, 40, 60, 80, 100]
-k_values = [120]
+c_values = [10]
+k_values = [0]
 
 def rad_s_to_rpm(rad_s):
     return (rad_s * 60) / (2 * np.pi)
@@ -90,6 +90,7 @@ def TimeAndPositionOfModelClosing_plot_k(theta_initial, theta_finishing, k_value
         sol = closingmodel(theta_initial, theta_finishing, speed_initial, T_stall, omega_max, gear_ratio, c, k)
         axs[0].plot(sol.t, sol.y[0, :], label='k = {}'.format(k))
         axs[1].plot(sol.t, sol.y[1, :], label='k = {}'.format(k))
+        print(f"Opening model stopped at time: {sol.t_events[0]}")
 
     axs[0].axhline(y=theta_finishing, color='r', linestyle='--', label='Finishing Theta')
     axs[0].legend()
@@ -97,8 +98,8 @@ def TimeAndPositionOfModelClosing_plot_k(theta_initial, theta_finishing, k_value
     plt.subplots_adjust(hspace=0.5)
     plt.show()
 
-TimeAndPositionOfModelClosing_plot_k(theta_f, theta_i, k_values, c_values[0])
+#TimeAndPositionOfModelClosing_plot_k(theta_f, theta_i, k_values, c_values[0])
 #TimeAndPositionOfModelClosing_plot_c(theta_f, theta_i, k_values[0], c_values)
-#TimeAndPositionOfModelOpening_plot_k(theta_i, theta_f, k_values, c_values[0])
+TimeAndPositionOfModelOpening_plot_k(theta_i, theta_f, k_values, c_values[0])
 #TimeAndPositionOfModelOpening_plot_c(theta_i, theta_f, k_values[0], c_values)
 

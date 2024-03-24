@@ -29,40 +29,42 @@ def phi(theta):
     return theta + np.arcsin(L_base / L_shortbeam)
 
 def dampertorque(c, theta, omega):
+    omega = abs(omega)
     #End-point
-    H = 0.5 * L_longbeam * np.cos(theta) + 0.5 * L_shortbeam * np.cos(phi(theta) - theta)
-    V = 0.5 * L_longbeam * np.sin(theta) - 0.5 * L_shortbeam * np.sin(phi(theta) - theta)
+    H = 0.5 * L_longbeam * np.cos(theta) + 0.5 * L_longbeam * np.cos(phi(theta) - theta)
+    V = 0.5 * L_longbeam * np.sin(theta) - 0.5 * L_longbeam * np.sin(phi(theta) - theta)
     R = np.sqrt(H ** 2 + V ** 2)
     #Blue beam
-    R_blue = np.sqrt(L_shortbeam ** 2 + (0.5 * L_longbeam) ** 2 - L_shortbeam ** 2 * np.cos(np.pi - phi(theta)))
+    R_blue = np.sqrt(L_shortbeam ** 2 + (0.5 * L_shortbeam) ** 2 - L_shortbeam ** 2 * np.cos(np.pi - phi(theta)))
     H_blue = np.sqrt(L_shortbeam ** 2 - L_base ** 2) + 0.5 * L_shortbeam * np.cos(theta)
     V_blue = np.sqrt(R_blue ** 2 - H_blue ** 2)
     #Green beam
     R_green = np.sqrt(
-        (0.5 * L_longbeam) ** 2 + (0.25 * L_longbeam) ** 2 - 0.25 * L_longbeam ** 2 * np.cos(np.pi - phi(theta)))
+        (0.5 * L_longbeam) ** 2 + (0.25 * L_longbeam) ** 2 - 0.25 * (L_longbeam ** 2) * np.cos(np.pi - phi(theta)))
     H_green = 0.5 * L_longbeam * np.cos(theta) + 0.25 * L_longbeam * np.cos(phi(theta) - theta)
     V_green = np.sqrt(R_green ** 2 - H_green ** 2)
     #Angle a
     H_a = H - H_blue
     V_a = V - V_blue
     R_a = np.sqrt(H_a ** 2 + V_a ** 2)
-    angle_a = np.arccos(((-H_a)*H + (-V_a)*V) / (R_a * R))
+    angle_a = np.arccos(((H_a)*H + (V_a)*V) / (R_a * R))
     #angle b
     H_b = H - H_green
     V_b = V - V_green
     R_b = np.sqrt(H_b ** 2 + V_b ** 2)
-    angle_b = np.arccos(((-H_b) * H + (-V_b) * V) / (R_b * R + 1e-10))
+    angle_b = np.arccos(((H_b) * H + (V_b) * V) / (R_b * R))
 
     #Calculate speed and torque
     H_prime = -0.5 * omega * L_longbeam * np.sin(theta)
     V_prime = 0.5 * omega * L_longbeam * np.cos(theta)
     speed = np.sqrt(H_prime ** 2 + V_prime ** 2)
     F_magnitude = c * speed
-
     F_green = F_magnitude * (np.sin(angle_b)/np.sin(angle_a + angle_b))
-    Torque = F_green * L_shortbeam * np.cos(phi(theta) - np.pi/2)
+    Torque = F_green * L_shortbeam * abs(np.sin(phi(theta)))
+    print("angle_a: ", angle_a)
+    print("angle_b: ", angle_b)
 
-    return Torque
+    return H_green, V_green, H_blue, V_blue, H, V
 
 def springtorque(k, theta, theta_initial):
     #initial position of the spring
@@ -81,7 +83,7 @@ def springtorque(k, theta, theta_initial):
     V_blue = np.sqrt(R_blue ** 2 - H_blue ** 2)
     # Green beam
     R_green = np.sqrt(
-        (0.5 * L_longbeam) ** 2 + (0.25 * L_longbeam) ** 2 - 0.25 * L_longbeam ** 2 * np.cos(np.pi - phi(theta)))
+        (0.5 * L_longbeam) ** 2 + (0.25 * L_longbeam) ** 2 - 0.25 * (L_longbeam ** 2) * np.cos(np.pi - phi(theta)))
     H_green = 0.5 * L_longbeam * np.cos(theta) + 0.25 * L_longbeam * np.cos(phi(theta) - theta)
     V_green = np.sqrt(R_green ** 2 - H_green ** 2)
     # Angle a
@@ -106,8 +108,8 @@ def springtorque(k, theta, theta_initial):
 
 def springtorqueconstant(k, theta, theta_initial):
     # End-point
-    H = 0.5 * L_longbeam * np.cos(theta) + 0.5 * L_shortbeam * np.cos(phi(theta) - theta)
-    V = 0.5 * L_longbeam * np.sin(theta) - 0.5 * L_shortbeam * np.sin(phi(theta) - theta)
+    H = 0.5 * L_longbeam * np.cos(theta) + 0.5 * L_longbeam * np.cos(phi(theta) - theta)
+    V = 0.5 * L_longbeam * np.sin(theta) - 0.5 * L_longbeam * np.sin(phi(theta) - theta)
     R = np.sqrt(H ** 2 + V ** 2)
     # Blue beam
     R_blue = np.sqrt(L_shortbeam ** 2 + (0.5 * L_longbeam) ** 2 - L_shortbeam ** 2 * np.cos(np.pi - phi(theta)))
@@ -115,7 +117,7 @@ def springtorqueconstant(k, theta, theta_initial):
     V_blue = np.sqrt(R_blue ** 2 - H_blue ** 2)
     # Green beam
     R_green = np.sqrt(
-        (0.5 * L_longbeam) ** 2 + (0.25 * L_longbeam) ** 2 - 0.25 * L_longbeam ** 2 * np.cos(np.pi - phi(theta)))
+        (0.5 * L_longbeam) ** 2 + (0.25 * L_longbeam) ** 2 - 0.25 * (L_longbeam ** 2) * np.cos(np.pi - phi(theta)))
     H_green = 0.5 * L_longbeam * np.cos(theta) + 0.25 * L_longbeam * np.cos(phi(theta) - theta)
     V_green = np.sqrt(R_green ** 2 - H_green ** 2)
     # Angle a
@@ -133,7 +135,7 @@ def springtorqueconstant(k, theta, theta_initial):
     F_magnitude = k
 
     F_green = F_magnitude * (np.sin(angle_b) / np.sin(angle_a + angle_b))
-    Torque = F_green * L_shortbeam * np.cos(phi(theta) - np.pi / 2)
+    Torque = F_green * L_shortbeam * np.cos(abs(phi(theta)))
 
     return Torque
 
@@ -178,7 +180,7 @@ def centre_of_mass(theta):
     angle_green = np.arctan(V_green / H_green) * 180 / np.pi
 
     # CoM of blue beam
-    R_blue = np.sqrt(L_shortbeam ** 2 + (0.5 * L_longbeam) ** 2 - L_shortbeam ** 2 * np.cos(np.pi - phi(theta)))
+    R_blue = np.sqrt(L_shortbeam ** 2 + (0.5 * L_shortbeam) ** 2 - L_shortbeam ** 2 * np.cos(np.pi - phi(theta)))
     H_blue = np.sqrt(L_shortbeam ** 2 - L_base ** 2) + 0.5 * L_shortbeam * np.cos(theta)
     V_blue = np.sqrt(R_blue ** 2 - H_blue ** 2)
     angle_blue = np.arctan(V_blue / H_blue) * 180 / np.pi
@@ -193,7 +195,7 @@ def centre_of_mass(theta):
     R_cm = np.sqrt(H_cm ** 2 + V_cm ** 2)
     angle_cm = np.arctan(V_cm / H_cm) * 180 / np.pi
 
-    return R_cm
+    return H_blue, V_blue, H_green, V_green, H_driving, V_driving, H_frame, V_frame, H_toppanel, V_toppanel, H_middlepanel, V_middlepanel, H_bottompanel, V_bottompanel
 
 
 def plot_com_change():
@@ -228,7 +230,7 @@ def openingmodel(theta_initial, theta_finishing, speed_initial, T_stall, omega_m
     # Define function for differential equation
     def opening(t, z):
         difz = [z[1],
-                (torque_out(z[1]) / (M_total * centre_of_mass(z[0]) ** 2)) - ((g * np.cos(z[0])) / centre_of_mass(z[0])) - (dampertorque(c, z[0], z[1])/(M_total*centre_of_mass(z[0]) ** 2)) + (springtorqueconstant(k, z[0], theta_initial) / (M_total*centre_of_mass(z[0]) ** 2))]
+                (torque_out(z[1]) / (M_total * centre_of_mass(z[0]) ** 2)) - ((g * np.cos(z[0])) / centre_of_mass(z[0])) - (dampertorque(c, z[0], z[1])/(M_total*centre_of_mass(z[0]) ** 2))]
         return difz
 
     # Define event to stop the simulation when the pendulum reaches the finishing angle
@@ -269,6 +271,33 @@ def closingmodel(theta_initial, theta_finishing, speed_initial, T_stall, omega_m
     my_eventstopclosing.direction = -1
 
     # Solve the differential equation for opening
-    sol_closing = solve_ivp(closing, (0, T), [theta_initial, speed_initial], rtol=0.000001, events=my_eventstopclosing)
+    sol_closing = solve_ivp(closing, (0, T), [theta_initial, speed_initial], rtol=1e-6, events=my_eventstopclosing)
 
     return sol_closing
+
+# Convert theta range from degrees to radians
+theta_values = np.radians(np.arange(15, 100))
+
+# Initialize lists to store H and V values
+H_values = [[] for _ in range(7)]
+V_values = [[] for _ in range(7)]
+
+# Calculate H and V values for each theta
+for theta in theta_values:
+    H_V_values = centre_of_mass(theta)
+    for i in range(7):
+        H_values[i].append(H_V_values[i*2])
+        V_values[i].append(H_V_values[i*2+1])
+
+# Plot H and V values
+plt.figure(figsize=(10, 6))
+labels = ['Blue', 'Green', 'Driving', 'Frame', 'Top Panel', 'Middle Panel', 'Bottom Panel']
+for i in range(7):
+    plt.plot(H_values[i], V_values[i], label=labels[i])
+plt.xlabel('H')
+plt.ylabel('V')
+plt.legend()
+plt.title('H vs V for different components and Centre of Mass')
+plt.axis('equal')
+plt.show()
+
