@@ -28,32 +28,35 @@ M_total = M_panels + 2 * (M_driving + M_green + M_frame + M_blue)
 def phi(theta):
     return theta + np.arcsin(L_base / L_shortbeam)
 
-def dampertorque(c, theta, omega):
-    omega = abs(omega)
-    #End-point
+def damperposition(theta):
+    # End-point
     H = 0.5 * L_longbeam * np.cos(theta) + 0.5 * L_longbeam * np.cos(phi(theta) - theta)
-    V = 0.5 * L_longbeam * np.sin(theta) - 0.5 * L_longbeam * np.sin(phi(theta) - theta)
+    V = 0.5 * L_longbeam * np.sin(theta) - 0.5 * L_longbeam * np.sin(phi(theta) - theta) + L_base
     R = np.sqrt(H ** 2 + V ** 2)
-    #Blue beam
+    # Blue beam
     R_blue = np.sqrt(L_shortbeam ** 2 + (0.5 * L_shortbeam) ** 2 - L_shortbeam ** 2 * np.cos(np.pi - phi(theta)))
     H_blue = np.sqrt(L_shortbeam ** 2 - L_base ** 2) + 0.5 * L_shortbeam * np.cos(theta)
     V_blue = np.sqrt(R_blue ** 2 - H_blue ** 2)
-    #Green beam
+    # Green beam
     R_green = np.sqrt(
         (0.5 * L_longbeam) ** 2 + (0.25 * L_longbeam) ** 2 - 0.25 * (L_longbeam ** 2) * np.cos(np.pi - phi(theta)))
     H_green = 0.5 * L_longbeam * np.cos(theta) + 0.25 * L_longbeam * np.cos(phi(theta) - theta)
     V_green = np.sqrt(R_green ** 2 - H_green ** 2)
-    #Angle a
+    # Angle a
     H_a = H - H_blue
     V_a = V - V_blue
     R_a = np.sqrt(H_a ** 2 + V_a ** 2)
-    angle_a = np.arccos(((H_a)*H + (V_a)*V) / (R_a * R))
-    #angle b
+    angle_a = np.arccos(((H_a) * H + (V_a) * V) / (R_a * R))
+    # angle b
     H_b = H - H_green
     V_b = V - V_green
     R_b = np.sqrt(H_b ** 2 + V_b ** 2)
     angle_b = np.arccos(((H_b) * H + (V_b) * V) / (R_b * R))
+    return H, V, H_green, V_green, H_blue, V_blue
 
+def dampertorque(c, theta, omega):
+    omega = abs(omega)
+    angle_a, angle_b = damperposition(theta)
     #Calculate speed and torque
     H_prime = -0.5 * omega * L_longbeam * np.sin(theta)
     V_prime = 0.5 * omega * L_longbeam * np.cos(theta)
@@ -61,10 +64,8 @@ def dampertorque(c, theta, omega):
     F_magnitude = c * speed
     F_green = F_magnitude * (np.sin(angle_b)/np.sin(angle_a + angle_b))
     Torque = F_green * L_shortbeam * abs(np.sin(phi(theta)))
-    print("angle_a: ", angle_a)
-    print("angle_b: ", angle_b)
 
-    return H_green, V_green, H_blue, V_blue, H, V
+    return Torque
 
 def springtorque(k, theta, theta_initial):
     #initial position of the spring
@@ -77,25 +78,7 @@ def springtorque(k, theta, theta_initial):
     H = 0.5 * L_longbeam * np.cos(theta) + 0.5 * L_longbeam * np.cos(phi(theta) - theta)
     V = 0.5 * L_longbeam * np.sin(theta) - 0.5 * L_longbeam * np.sin(phi(theta) - theta)
     R = np.sqrt(H ** 2 + V ** 2)
-    # Blue beam
-    R_blue = np.sqrt(L_shortbeam ** 2 + (0.5 * L_longbeam) ** 2 - L_shortbeam ** 2 * np.cos(np.pi - phi(theta)))
-    H_blue = np.sqrt(L_shortbeam ** 2 - L_base ** 2) + 0.5 * L_shortbeam * np.cos(theta)
-    V_blue = np.sqrt(R_blue ** 2 - H_blue ** 2)
-    # Green beam
-    R_green = np.sqrt(
-        (0.5 * L_longbeam) ** 2 + (0.25 * L_longbeam) ** 2 - 0.25 * (L_longbeam ** 2) * np.cos(np.pi - phi(theta)))
-    H_green = 0.5 * L_longbeam * np.cos(theta) + 0.25 * L_longbeam * np.cos(phi(theta) - theta)
-    V_green = np.sqrt(R_green ** 2 - H_green ** 2)
-    # Angle a
-    H_a = H - H_blue
-    V_a = V - V_blue
-    R_a = np.sqrt(H_a ** 2 + V_a ** 2)
-    angle_a = np.arccos(((-H_a) * H + (-V_a) * V) / (R_a * R))
-    # angle b
-    H_b = H - H_green
-    V_b = V - V_green
-    R_b = np.sqrt(H_b ** 2 + V_b ** 2)
-    angle_b = np.arccos(((-H_b) * H + (-V_b) * V) / (R_b * R + 1e-10))
+    angle_a, angle_b = damperposition(theta)
 
     # Calculate displacement and torque
     displacement = abs(R_initial - R)
@@ -107,29 +90,7 @@ def springtorque(k, theta, theta_initial):
     return Torque
 
 def springtorqueconstant(k, theta, theta_initial):
-    # End-point
-    H = 0.5 * L_longbeam * np.cos(theta) + 0.5 * L_longbeam * np.cos(phi(theta) - theta)
-    V = 0.5 * L_longbeam * np.sin(theta) - 0.5 * L_longbeam * np.sin(phi(theta) - theta)
-    R = np.sqrt(H ** 2 + V ** 2)
-    # Blue beam
-    R_blue = np.sqrt(L_shortbeam ** 2 + (0.5 * L_longbeam) ** 2 - L_shortbeam ** 2 * np.cos(np.pi - phi(theta)))
-    H_blue = np.sqrt(L_shortbeam ** 2 - L_base ** 2) + 0.5 * L_shortbeam * np.cos(theta)
-    V_blue = np.sqrt(R_blue ** 2 - H_blue ** 2)
-    # Green beam
-    R_green = np.sqrt(
-        (0.5 * L_longbeam) ** 2 + (0.25 * L_longbeam) ** 2 - 0.25 * (L_longbeam ** 2) * np.cos(np.pi - phi(theta)))
-    H_green = 0.5 * L_longbeam * np.cos(theta) + 0.25 * L_longbeam * np.cos(phi(theta) - theta)
-    V_green = np.sqrt(R_green ** 2 - H_green ** 2)
-    # Angle a
-    H_a = H - H_blue
-    V_a = V - V_blue
-    R_a = np.sqrt(H_a ** 2 + V_a ** 2)
-    angle_a = np.arccos(((-H_a) * H + (-V_a) * V) / (R_a * R))
-    # angle b
-    H_b = H - H_green
-    V_b = V - V_green
-    R_b = np.sqrt(H_b ** 2 + V_b ** 2)
-    angle_b = np.arccos(((-H_b) * H + (-V_b) * V) / (R_b * R + 1e-10))
+    angle_a, angle_b = damperposition(theta)
 
     # Calculate displacement and torque
     F_magnitude = k
@@ -167,22 +128,22 @@ def centre_of_mass(theta):
     angle_frame = np.arctan(V_frame / H_frame) * 180 / np.pi
 
     # CoM of driving beam
-    R_driving = 0.25 * L_longbeam
+    R_driving = 0.25 * L_longbeam * np.sin(theta) + L_base
     H_driving = 0.25 * L_longbeam * np.cos(theta)
     V_driving = np.sqrt(R_driving ** 2 - H_driving ** 2)
     angle_driving = np.arctan(V_driving / H_driving) * 180 / np.pi
 
     # CoM of green beam
     R_green = np.sqrt(
-        (0.5 * L_longbeam) ** 2 + (0.25 * L_longbeam) ** 2 - 0.25 * L_longbeam ** 2 * np.cos(np.pi - phi(theta)))
+        (0.5 * L_longbeam) ** 2 + (0.25 * L_longbeam) ** 2 - 0.25 * (L_longbeam ** 2) * np.cos(np.pi - phi(theta)))
     H_green = 0.5 * L_longbeam * np.cos(theta) + 0.25 * L_longbeam * np.cos(phi(theta) - theta)
     V_green = np.sqrt(R_green ** 2 - H_green ** 2)
     angle_green = np.arctan(V_green / H_green) * 180 / np.pi
 
     # CoM of blue beam
-    R_blue = np.sqrt(L_shortbeam ** 2 + (0.5 * L_shortbeam) ** 2 - L_shortbeam ** 2 * np.cos(np.pi - phi(theta)))
-    H_blue = np.sqrt(L_shortbeam ** 2 - L_base ** 2) + 0.5 * L_shortbeam * np.cos(theta)
-    V_blue = np.sqrt(R_blue ** 2 - H_blue ** 2)
+    H_blue = np.sqrt(L_shortbeam ** 2 - L_base ** 2) + L_shortbeam * np.cos(theta)
+    V_blue = 0.5 * np.sin(phi(theta)) * L_shortbeam
+    R_blue = np.sqrt(H_blue ** 2 + V_blue ** 2)
     angle_blue = np.arctan(V_blue / H_blue) * 180 / np.pi
 
     # H centre of mass
@@ -275,29 +236,55 @@ def closingmodel(theta_initial, theta_finishing, speed_initial, T_stall, omega_m
 
     return sol_closing
 
+# # Convert theta range from degrees to radians
+# theta_values = np.radians(np.arange(15, 100))
+#
+# # Initialize lists to store H and V values
+# H_values = [[] for _ in range(7)]
+# V_values = [[] for _ in range(7)]
+#
+# # Calculate H and V values for each theta
+# for theta in theta_values:
+#     H_V_values = centre_of_mass(theta)
+#     for i in range(7):
+#         H_values[i].append(H_V_values[i*2])
+#         V_values[i].append(H_V_values[i*2+1])
+#
+# # Plot H and V values
+# plt.figure(figsize=(10, 6))
+# labels = ['Blue', 'Green', 'Driving', 'Frame', 'Top Panel', 'Middle Panel', 'Bottom Panel']
+# for i in range(7):
+#     plt.plot(H_values[i], V_values[i], label=labels[i])
+# plt.xlabel('H')
+# plt.ylabel('V')
+# plt.legend()
+# plt.title('H vs V for different components and Centre of Mass')
+# plt.show()
+
 # Convert theta range from degrees to radians
-theta_values = np.radians(np.arange(15, 100))
+theta_values = np.radians(np.arange(15, 101))
 
 # Initialize lists to store H and V values
-H_values = [[] for _ in range(7)]
-V_values = [[] for _ in range(7)]
+H_regular, V_regular, H_blue, V_blue, H_green, V_green = [], [], [], [], [], []
 
 # Calculate H and V values for each theta
 for theta in theta_values:
-    H_V_values = centre_of_mass(theta)
-    for i in range(7):
-        H_values[i].append(H_V_values[i*2])
-        V_values[i].append(H_V_values[i*2+1])
+    H_reg, V_reg, H_gre, V_gre, H_blu, V_blu = damperposition(theta)
+    H_regular.append(H_reg)
+    V_regular.append(V_reg)
+    H_blue.append(H_blu)
+    V_blue.append(V_blu)
+    H_green.append(H_gre)
+    V_green.append(V_gre)
 
 # Plot H and V values
 plt.figure(figsize=(10, 6))
-labels = ['Blue', 'Green', 'Driving', 'Frame', 'Top Panel', 'Middle Panel', 'Bottom Panel']
-for i in range(7):
-    plt.plot(H_values[i], V_values[i], label=labels[i])
+plt.plot(H_regular, V_regular, label='Point')
+plt.plot(H_blue, V_blue, label='Blue')
+plt.plot(H_green, V_green, label='Green')
 plt.xlabel('H')
 plt.ylabel('V')
 plt.legend()
-plt.title('H vs V for different components and Centre of Mass')
-plt.axis('equal')
+plt.title('H vs V for Regular, Blue, and Green')
 plt.show()
 
