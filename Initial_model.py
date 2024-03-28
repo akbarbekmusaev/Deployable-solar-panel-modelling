@@ -1,7 +1,6 @@
 import numpy as np
 from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
-import simpy as sp
 
 # constants
 T = 100
@@ -34,9 +33,9 @@ def damperposition(theta):
     V = 0.5 * L_longbeam * np.sin(theta) - 0.5 * L_longbeam * np.sin(phi(theta) - theta) + L_base
     R = np.sqrt(H ** 2 + V ** 2)
     # Blue beam
-    R_blue = np.sqrt(L_shortbeam ** 2 + (0.5 * L_shortbeam) ** 2 - L_shortbeam ** 2 * np.cos(np.pi - phi(theta)))
-    H_blue = np.sqrt(L_shortbeam ** 2 - L_base ** 2) + 0.5 * L_shortbeam * np.cos(theta)
-    V_blue = np.sqrt(R_blue ** 2 - H_blue ** 2)
+    H_blue = np.sqrt(L_shortbeam ** 2 - L_base**2) + L_shortbeam * np.cos(theta)
+    V_blue = 0.5 * L_shortbeam * np.sin(theta) - L_base
+    R_blue = np.sqrt(H_blue ** 2 + V_blue ** 2)
     # Green beam
     R_green = np.sqrt(
         (0.5 * L_longbeam) ** 2 + (0.25 * L_longbeam) ** 2 - 0.25 * (L_longbeam ** 2) * np.cos(np.pi - phi(theta)))
@@ -52,7 +51,7 @@ def damperposition(theta):
     V_b = V - V_green
     R_b = np.sqrt(H_b ** 2 + V_b ** 2)
     angle_b = np.arccos(((H_b) * H + (V_b) * V) / (R_b * R))
-    return H, V, H_green, V_green, H_blue, V_blue
+    return angle_a, angle_b
 
 def dampertorque(c, theta, omega):
     omega = abs(omega)
@@ -128,7 +127,7 @@ def centre_of_mass(theta):
     angle_frame = np.arctan(V_frame / H_frame) * 180 / np.pi
 
     # CoM of driving beam
-    R_driving = 0.25 * L_longbeam * np.sin(theta) + L_base
+    R_driving = 0.25 * L_longbeam
     H_driving = 0.25 * L_longbeam * np.cos(theta)
     V_driving = np.sqrt(R_driving ** 2 - H_driving ** 2)
     angle_driving = np.arctan(V_driving / H_driving) * 180 / np.pi
@@ -140,9 +139,9 @@ def centre_of_mass(theta):
     V_green = np.sqrt(R_green ** 2 - H_green ** 2)
     angle_green = np.arctan(V_green / H_green) * 180 / np.pi
 
-    # CoM of blue beam
+    # Blue beam
     H_blue = np.sqrt(L_shortbeam ** 2 - L_base ** 2) + L_shortbeam * np.cos(theta)
-    V_blue = 0.5 * np.sin(phi(theta)) * L_shortbeam
+    V_blue = 0.5 * L_shortbeam * np.sin(theta) - L_base
     R_blue = np.sqrt(H_blue ** 2 + V_blue ** 2)
     angle_blue = np.arctan(V_blue / H_blue) * 180 / np.pi
 
@@ -236,55 +235,25 @@ def closingmodel(theta_initial, theta_finishing, speed_initial, T_stall, omega_m
 
     return sol_closing
 
-# # Convert theta range from degrees to radians
-# theta_values = np.radians(np.arange(15, 100))
-#
-# # Initialize lists to store H and V values
-# H_values = [[] for _ in range(7)]
-# V_values = [[] for _ in range(7)]
-#
-# # Calculate H and V values for each theta
-# for theta in theta_values:
-#     H_V_values = centre_of_mass(theta)
-#     for i in range(7):
-#         H_values[i].append(H_V_values[i*2])
-#         V_values[i].append(H_V_values[i*2+1])
-#
-# # Plot H and V values
-# plt.figure(figsize=(10, 6))
-# labels = ['Blue', 'Green', 'Driving', 'Frame', 'Top Panel', 'Middle Panel', 'Bottom Panel']
-# for i in range(7):
-#     plt.plot(H_values[i], V_values[i], label=labels[i])
-# plt.xlabel('H')
-# plt.ylabel('V')
-# plt.legend()
-# plt.title('H vs V for different components and Centre of Mass')
-# plt.show()
+# Define a range of theta values from 15 degrees to 100 degrees in radians
+theta_values = np.radians(np.arange(15, 101, 1))
 
-# Convert theta range from degrees to radians
-theta_values = np.radians(np.arange(15, 101))
-
-# Initialize lists to store H and V values
-H_regular, V_regular, H_blue, V_blue, H_green, V_green = [], [], [], [], [], []
-
-# Calculate H and V values for each theta
+# Calculate the corresponding angles a and b for each theta value
+angle_a_values = []
+angle_b_values = []
 for theta in theta_values:
-    H_reg, V_reg, H_gre, V_gre, H_blu, V_blu = damperposition(theta)
-    H_regular.append(H_reg)
-    V_regular.append(V_reg)
-    H_blue.append(H_blu)
-    V_blue.append(V_blu)
-    H_green.append(H_gre)
-    V_green.append(V_gre)
+    angle_a, angle_b = damperposition(theta)
+    angle_a_values.append(angle_a)
+    angle_b_values.append(angle_b)
 
-# Plot H and V values
+# Plot angle a and angle b against theta values
 plt.figure(figsize=(10, 6))
-plt.plot(H_regular, V_regular, label='Point')
-plt.plot(H_blue, V_blue, label='Blue')
-plt.plot(H_green, V_green, label='Green')
-plt.xlabel('H')
-plt.ylabel('V')
+plt.plot(np.degrees(theta_values), np.degrees(angle_a_values), label='Angle a')
+plt.plot(np.degrees(theta_values), np.degrees(angle_b_values), label='Angle b')
+plt.xlabel('Theta (degrees)')
+plt.ylabel('Angle (radians)')
+plt.title('Angles a and b from damper position against Theta')
 plt.legend()
-plt.title('H vs V for Regular, Blue, and Green')
+plt.grid(True)
 plt.show()
 
