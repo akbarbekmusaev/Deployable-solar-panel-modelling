@@ -27,78 +27,11 @@ M_total = M_panels + 2 * (M_driving + M_green + M_frame + M_blue)
 def phi(theta):
     return theta + np.arcsin(L_base / L_shortbeam)
 
-def damperposition(theta):
-    # End-point
-    H = 0.5 * L_longbeam * np.cos(theta) + 0.5 * L_longbeam * np.cos(phi(theta) - theta)
-    V = 0.5 * L_longbeam * np.sin(theta) - 0.5 * L_longbeam * np.sin(phi(theta) - theta) + L_base
-    R = np.sqrt(H ** 2 + V ** 2)
-    # Blue beam
-    H_blue = np.sqrt(L_shortbeam ** 2 - L_base**2) + L_shortbeam * np.cos(theta)
-    V_blue = 0.5 * L_shortbeam * np.sin(theta) - L_base
-    R_blue = np.sqrt(H_blue ** 2 + V_blue ** 2)
-    # Green beam
-    R_green = np.sqrt(
-        (0.5 * L_longbeam) ** 2 + (0.25 * L_longbeam) ** 2 - 0.25 * (L_longbeam ** 2) * np.cos(np.pi - phi(theta)))
-    H_green = 0.5 * L_longbeam * np.cos(theta) + 0.25 * L_longbeam * np.cos(phi(theta) - theta)
-    V_green = np.sqrt(R_green ** 2 - H_green ** 2)
-    # Angle a
-    H_a = H - H_blue
-    V_a = V - V_blue
-    R_a = np.sqrt(H_a ** 2 + V_a ** 2)
-    angle_a = np.arccos(((H_a) * H + (V_a) * V) / (R_a * R))
-    # angle b
-    H_b = H - H_green
-    V_b = V - V_green
-    R_b = np.sqrt(H_b ** 2 + V_b ** 2)
-    angle_b = np.arccos(((H_b) * H + (V_b) * V) / (R_b * R))
-    return angle_a, angle_b
 
-def dampertorque(c, theta, omega):
-    omega = abs(omega)
-    angle_a, angle_b = damperposition(theta)
-    #Calculate speed and torque
-    H_prime = -0.5 * omega * L_longbeam * np.sin(theta)
-    V_prime = 0.5 * omega * L_longbeam * np.cos(theta)
-    speed = np.sqrt(H_prime ** 2 + V_prime ** 2)
-    F_magnitude = c * speed
-    F_green = F_magnitude * (np.sin(angle_b)/np.sin(angle_a + angle_b))
-    Torque = F_green * L_shortbeam * abs(np.sin(phi(theta)))
-
-    return Torque
-
-def springtorque(k, theta, theta_initial):
-    #initial position of the spring
-    H_initial = 0.5 * L_longbeam * np.cos(theta_initial) + 0.5 * L_longbeam * np.cos(
-        phi(theta_initial) - theta_initial)
-    V_initial = 0.5 * L_longbeam * np.sin(theta_initial) - 0.5 * L_longbeam * np.sin(
-        phi(theta_initial) - theta_initial)
-    R_initial = np.sqrt(H_initial ** 2 + V_initial ** 2)
-    # End-point
-    H = 0.5 * L_longbeam * np.cos(theta) + 0.5 * L_longbeam * np.cos(phi(theta) - theta)
-    V = 0.5 * L_longbeam * np.sin(theta) - 0.5 * L_longbeam * np.sin(phi(theta) - theta)
-    R = np.sqrt(H ** 2 + V ** 2)
-    angle_a, angle_b = damperposition(theta)
-
-    # Calculate displacement and torque
-    displacement = abs(R_initial - R)
-    F_magnitude = k * displacement
-
-    F_green = F_magnitude * (np.sin(angle_b) / np.sin(angle_a + angle_b))
-    Torque = F_green * L_shortbeam * np.cos(phi(theta) - np.pi / 2)
-
-    return Torque
-
-def springtorqueconstant(k, theta, theta_initial):
-    angle_a, angle_b = damperposition(theta)
-
-    # Calculate displacement and torque
-    F_magnitude = k
-
-    F_green = F_magnitude * (np.sin(angle_b) / np.sin(angle_a + angle_b))
-    Torque = F_green * L_shortbeam * np.cos(abs(phi(theta)))
-
-    return Torque
-
+def spring_rate (theta, k_start, k_finish):
+    # Define function to calculate the spring rate
+    k = k_start + (k_finish - k_start) * (theta / np.pi/2)
+    return k
 
 def centre_of_mass(theta):
     # Calculate CoM for each component H is the horizontal distance from the pivot to the CoM
@@ -140,22 +73,23 @@ def centre_of_mass(theta):
     angle_green = np.arctan(V_green / H_green) * 180 / np.pi
 
     # Blue beam
-    H_blue = np.sqrt(L_shortbeam ** 2 - L_base ** 2) + L_shortbeam * np.cos(theta)
+    H_blue = L_shortbeam + 0.5 * L_shortbeam * np.cos(theta)
     V_blue = 0.5 * L_shortbeam * np.sin(theta) - L_base
     R_blue = np.sqrt(H_blue ** 2 + V_blue ** 2)
     angle_blue = np.arctan(V_blue / H_blue) * 180 / np.pi
 
     # H centre of mass
-    H_cm = (M_solarpanel * (H_toppanel + H_middlepanel + H_bottompanel) + M_frame * H_frame + M_driving * H_driving + M_green * H_green + M_blue * H_blue) / M_total
+    H_cm = (M_solarpanel * (H_bottompanel + H_middlepanel + H_toppanel) + M_frame * H_frame + M_driving * H_driving + M_green * H_green + M_blue * H_blue) / M_total
 
     # V centre of mass
-    V_cm = (M_solarpanel * (V_toppanel + V_middlepanel + V_bottompanel) + M_frame * V_frame + M_driving * V_driving + M_green * V_green + M_blue * V_blue) / M_total
+    V_cm = (M_solarpanel * (V_bottompanel + V_middlepanel + V_toppanel) + M_frame * V_frame + M_driving * V_driving + M_green * V_green + M_blue * V_blue) / M_total
 
     # R centre of mass
     R_cm = np.sqrt(H_cm ** 2 + V_cm ** 2)
     angle_cm = np.arctan(V_cm / H_cm) * 180 / np.pi
 
-    return H_blue, V_blue, H_green, V_green, H_driving, V_driving, H_frame, V_frame, H_toppanel, V_toppanel, H_middlepanel, V_middlepanel, H_bottompanel, V_bottompanel
+    return R_cm
+
 
 
 def plot_com_change():
@@ -173,7 +107,7 @@ def plot_com_change():
     plt.show()
 
 
-def openingmodel(theta_initial, theta_finishing, speed_initial, T_stall, omega_max, gearRatio, c, k):
+def openingmodel(theta_initial, theta_finishing, speed_initial, T_stall, omega_max, gearRatio, c, k_start, k_finish):
 
     # Define function to calculate output torque from gearbox to mechanism
     def torque_out(speed):
@@ -187,10 +121,11 @@ def openingmodel(theta_initial, theta_finishing, speed_initial, T_stall, omega_m
         torque = -(T_stall / omega_max) * (speed * gearRatio) + T_stall
         return torque
 
+
     # Define function for differential equation
     def opening(t, z):
         difz = [z[1],
-                (torque_out(z[1]) / (M_total * centre_of_mass(z[0]) ** 2)) - ((g * np.cos(z[0])) / centre_of_mass(z[0])) - (dampertorque(c, z[0], z[1])/(M_total*centre_of_mass(z[0]) ** 2))]
+                (torque_out(z[1]) / (M_total * centre_of_mass(z[0]) ** 2)) - ((g * np.cos(z[0])) / centre_of_mass(z[0])) - c*z[1]/ (M_total * centre_of_mass(z[0]) ** 2) + spring_rate(z[0] - theta_initial, k_start, k_finish) / (M_total * centre_of_mass(z[0]) ** 2)]
         return difz
 
     # Define event to stop the simulation when the pendulum reaches the finishing angle
@@ -206,7 +141,7 @@ def openingmodel(theta_initial, theta_finishing, speed_initial, T_stall, omega_m
     return sol_opening
 
 
-def closingmodel(theta_initial, theta_finishing, speed_initial, T_stall, omega_max, gearRatio, c, k):
+def closingmodel(theta_initial, theta_finishing, speed_initial, T_stall, omega_max, gearRatio, c, k_start, k_finish):
     # Define function to calculate output torque from gearbox to mechanism
     def torque_out(speed):
         torque = torque_in(speed) * gearRatio
@@ -220,7 +155,7 @@ def closingmodel(theta_initial, theta_finishing, speed_initial, T_stall, omega_m
     # Define function for differential equation
     def closing(t, z):
         difz = [z[1],
-                (-torque_out(z[1]) / (M_total * centre_of_mass(z[0]) ** 2)) - (g * np.cos(z[0])) / centre_of_mass(z[0]) + (dampertorque(c, z[0], z[1]) / (M_total*centre_of_mass(z[0]) ** 2)) + (springtorqueconstant(k, z[0], theta_finishing) / (M_total*centre_of_mass(z[0]) ** 2))]
+                (-torque_out(z[1]) / (M_total * centre_of_mass(z[0]) ** 2)) - (g * np.cos(z[0])) / centre_of_mass(z[0])  - c*z[1]/ (M_total * centre_of_mass(z[0]) ** 2) + spring_rate(theta_finishing - z[0], k_finish, k_start) / (M_total * centre_of_mass(z[0]) ** 2)]
         return difz
 
     # Define event to stop the simulation when the pendulum reaches the finishing angle
@@ -234,26 +169,3 @@ def closingmodel(theta_initial, theta_finishing, speed_initial, T_stall, omega_m
     sol_closing = solve_ivp(closing, (0, T), [theta_initial, speed_initial], rtol=1e-6, events=my_eventstopclosing)
 
     return sol_closing
-
-# Define a range of theta values from 15 degrees to 100 degrees in radians
-theta_values = np.radians(np.arange(15, 101, 1))
-
-# Calculate the corresponding angles a and b for each theta value
-angle_a_values = []
-angle_b_values = []
-for theta in theta_values:
-    angle_a, angle_b = damperposition(theta)
-    angle_a_values.append(angle_a)
-    angle_b_values.append(angle_b)
-
-# Plot angle a and angle b against theta values
-plt.figure(figsize=(10, 6))
-plt.plot(np.degrees(theta_values), np.degrees(angle_a_values), label='Angle a')
-plt.plot(np.degrees(theta_values), np.degrees(angle_b_values), label='Angle b')
-plt.xlabel('Theta (degrees)')
-plt.ylabel('Angle (radians)')
-plt.title('Angles a and b from damper position against Theta')
-plt.legend()
-plt.grid(True)
-plt.show()
-

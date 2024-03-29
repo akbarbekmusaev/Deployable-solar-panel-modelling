@@ -13,7 +13,7 @@ speed_initial = 0
 T_stall = 0.69
 omega_max = 3700
 gearRatio = 270
-c = 400
+c = 0
 
 # Define function to create animation
 def create_animation(sol, theta_finishing):
