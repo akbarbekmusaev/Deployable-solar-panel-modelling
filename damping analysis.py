@@ -11,7 +11,7 @@ T_stall = 0.69
 omega_max = 3700
 gear_ratio = 270
 c_values_opening = [500]
-c_values_closing = [0]
+c_values_closing = [2500]
 
 #08-020
 k_start = 0
