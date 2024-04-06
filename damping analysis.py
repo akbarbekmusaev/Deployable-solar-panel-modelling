@@ -87,7 +87,7 @@ def TimeAndPositionOfModelClosing_plot_c(theta_initial, theta_finishing, c_value
     plt.subplots_adjust(hspace=0.5)
     plt.show()
 
-#TimeAndPositionOfModelOpening_plot_c(theta_i, theta_f, c_values_opening, k_start, k_finish)
-TimeAndPositionOfModelClosing_plot_c(theta_f, theta_i, c_values_closing, k_start, k_finish)
+TimeAndPositionOfModelOpening_plot_c(theta_i, theta_f, c_values_opening, k_start, k_finish)
+#TimeAndPositionOfModelClosing_plot_c(theta_f, theta_i, c_values_closing, k_start, k_finish)
 
 
