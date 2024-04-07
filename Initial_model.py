@@ -27,7 +27,6 @@ M_total = M_panels + 2 * (M_driving + M_green + M_frame + M_blue)
 def phi(theta):
     return theta + np.arcsin(L_base / L_shortbeam)
 
-
 def spring_rate (theta, k_start, k_finish):
     # Define function to calculate the spring rate
     k = k_start + (k_finish - k_start) * (theta / np.pi/2)
@@ -90,42 +89,21 @@ def centre_of_mass(theta):
 
     return R_cm
 
+def torque_out(speed, T_stall, omega_max, gearRatio):
+    torque = torque_in(speed, T_stall, omega_max, gearRatio) * gearRatio
+    return torque
 
-
-def plot_com_change():
-    # Create a range of theta values from 0 to pi with a step of 0.01
-    theta_values = np.arange(0, np.pi, 0.01)
-
-    # Calculate the CoM for each theta value
-    com_values = [centre_of_mass(theta) for theta in theta_values]
-
-    # Plot the CoM values against theta values
-    plt.plot(theta_values, com_values)
-    plt.xlabel('Theta (rad)')
-    plt.ylabel('Centre of Mass (m)')
-    plt.title('Change of Centre of Mass over angle Theta')
-    plt.show()
-
+def torque_in(speed, T_stall, omega_max, gearRatio):
+    if speed < 0:
+        speed = 0
+    torque = -(T_stall / omega_max) * (speed * gearRatio) + T_stall
+    return torque
 
 def openingmodel(theta_initial, theta_finishing, speed_initial, T_stall, omega_max, gearRatio, c, k_start, k_finish):
-
-    # Define function to calculate output torque from gearbox to mechanism
-    def torque_out(speed):
-        torque = torque_in(speed) * gearRatio
-        return torque
-
-    # Define function to calculate input torque from motor to gearbox
-    def torque_in(speed):
-        if speed < 0:
-            speed = 0
-        torque = -(T_stall / omega_max) * (speed * gearRatio) + T_stall
-        return torque
-
-
     # Define function for differential equation
     def opening(t, z):
         difz = [z[1],
-                (torque_out(z[1]) / (M_total * centre_of_mass(z[0]) ** 2)) - ((g * np.cos(z[0])) / centre_of_mass(z[0])) - c*z[1]/ (M_total * centre_of_mass(z[0]) ** 2) + spring_rate(z[0] - theta_initial, k_start, k_finish) / (M_total * centre_of_mass(z[0]) ** 2)]
+                (torque_out(z[1], T_stall, omega_max, gearRatio) / (M_total * centre_of_mass(z[0]) ** 2)) - ((g * np.cos(z[0])) / centre_of_mass(z[0])) - c*z[1]/ (M_total * centre_of_mass(z[0]) ** 2) + spring_rate(z[0] - theta_initial, k_start, k_finish) / (M_total * centre_of_mass(z[0]) ** 2)]
         return difz
 
     # Define event to stop the simulation when the pendulum reaches the finishing angle
@@ -142,20 +120,10 @@ def openingmodel(theta_initial, theta_finishing, speed_initial, T_stall, omega_m
 
 
 def closingmodel(theta_initial, theta_finishing, speed_initial, T_stall, omega_max, gearRatio, c, k_start, k_finish):
-    # Define function to calculate output torque from gearbox to mechanism
-    def torque_out(speed):
-        torque = torque_in(speed) * gearRatio
-        return torque
-
-    # Define function to calculate input torque from motor to gearbox
-    def torque_in(speed):
-        torque = -(T_stall / omega_max) * (speed * gearRatio) + T_stall
-        return torque
-
     # Define function for differential equation
     def closing(t, z):
         difz = [z[1],
-                (-torque_out(z[1]) / (M_total * centre_of_mass(z[0]) ** 2)) - (g * np.cos(z[0])) / centre_of_mass(z[0])  - c*z[1]/ (M_total * centre_of_mass(z[0]) ** 2) + spring_rate(theta_finishing - z[0], k_finish, k_start) / (M_total * centre_of_mass(z[0]) ** 2)]
+                (-torque_out(z[1], T_stall, omega_max, gearRatio) / (M_total * centre_of_mass(z[0]) ** 2)) - (g * np.cos(z[0])) / centre_of_mass(z[0])  - c*z[1]/ (M_total * centre_of_mass(z[0]) ** 2) + spring_rate(theta_finishing - z[0], k_finish, k_start) / (M_total * centre_of_mass(z[0]) ** 2)]
         return difz
 
     # Define event to stop the simulation when the pendulum reaches the finishing angle
