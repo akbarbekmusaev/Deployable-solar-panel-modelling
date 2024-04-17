@@ -89,8 +89,8 @@ def centre_of_mass(theta):
 
     return R_cm
 
-def torque_out(speed, T_stall, omega_max, gearRatio):
-    torque = torque_in(speed, T_stall, omega_max, gearRatio) * gearRatio
+def torque_out(speed, T_stall, omega_max, gearRatio, efficiency):
+    torque = efficiency * torque_in(speed, T_stall, omega_max, gearRatio) * gearRatio
     return torque
 
 def torque_in(speed, T_stall, omega_max, gearRatio):
@@ -99,11 +99,11 @@ def torque_in(speed, T_stall, omega_max, gearRatio):
     torque = -(T_stall / omega_max) * (speed * gearRatio) + T_stall
     return torque
 
-def openingmodel(theta_initial, theta_finishing, speed_initial, T_stall, omega_max, gearRatio, c, k_start, k_finish):
+def openingmodel(theta_initial, theta_finishing, speed_initial, T_stall, omega_max, gearRatio, c, k_start, k_finish, efficiency):
     # Define function for differential equation
     def opening(t, z):
         difz = [z[1],
-                (torque_out(z[1], T_stall, omega_max, gearRatio) / (M_total * centre_of_mass(z[0]) ** 2)) - ((g * np.cos(z[0])) / centre_of_mass(z[0])) - c*z[1]/ (M_total * centre_of_mass(z[0]) ** 2) + spring_rate(z[0] - theta_initial, k_start, k_finish) / (M_total * centre_of_mass(z[0]) ** 2)]
+                (torque_out(z[1], T_stall, omega_max, gearRatio, efficiency) / (M_total * centre_of_mass(z[0]) ** 2)) - ((g * np.cos(z[0])) / centre_of_mass(z[0])) - c*z[1]/ (M_total * centre_of_mass(z[0]) ** 2) + spring_rate(z[0] - theta_initial, k_start, k_finish) / (M_total * centre_of_mass(z[0]) ** 2)]
         return difz
 
     # Define event to stop the simulation when the pendulum reaches the finishing angle
@@ -119,11 +119,11 @@ def openingmodel(theta_initial, theta_finishing, speed_initial, T_stall, omega_m
     return sol_opening
 
 
-def closingmodel(theta_initial, theta_finishing, speed_initial, T_stall, omega_max, gearRatio, c, k_start, k_finish):
+def closingmodel(theta_initial, theta_finishing, speed_initial, T_stall, omega_max, gearRatio, c, k_start, k_finish, efficiency):
     # Define function for differential equation
     def closing(t, z):
         difz = [z[1],
-                (-torque_out(z[1], T_stall, omega_max, gearRatio) / (M_total * centre_of_mass(z[0]) ** 2)) - (g * np.cos(z[0])) / centre_of_mass(z[0])  - c*z[1]/ (M_total * centre_of_mass(z[0]) ** 2) + spring_rate(theta_finishing - z[0], k_finish, k_start) / (M_total * centre_of_mass(z[0]) ** 2)]
+                (-torque_out(z[1], T_stall, omega_max, gearRatio, efficiency) / (M_total * centre_of_mass(z[0]) ** 2)) - (g * np.cos(z[0])) / centre_of_mass(z[0])  - c*z[1]/ (M_total * centre_of_mass(z[0]) ** 2) + spring_rate(theta_finishing - z[0], k_finish, k_start) / (M_total * centre_of_mass(z[0]) ** 2)]
         return difz
 
     # Define event to stop the simulation when the pendulum reaches the finishing angle

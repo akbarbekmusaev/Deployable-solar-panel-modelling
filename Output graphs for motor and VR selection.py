@@ -13,6 +13,7 @@ gear_ratios = [270]  # List of gear ratios
 c = 500
 g = 9.81 # Acceleration due to gravity
 M_total = 39.248 # Total mass of the pend]
+effiency = 0.9
 
 
 # Define function to plot time and position of model
