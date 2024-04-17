@@ -10,8 +10,9 @@ speed_initial = 0
 T_stall = 0.69
 omega_max = 3700
 gear_ratio = 270
-c_values_opening = [500]
-c_values_closing = [2500]
+c_values_opening = [0]
+c_values_closing = [0]
+efficiency = 0.57
 
 #08-020
 k_start = 0
@@ -35,7 +36,7 @@ def TimeAndPositionOfModelOpening_plot_c(theta_initial, theta_finishing, c_value
     axs[3].set_title('Torque of the damper vs time')
 
     for c in c_values:
-        sol = openingmodel(theta_initial, theta_finishing, speed_initial, T_stall, omega_max, gear_ratio, c, k_start, k_finish)
+        sol = openingmodel(theta_initial, theta_finishing, speed_initial, T_stall, omega_max, gear_ratio, c, k_start, k_finish, efficiency)
         axs[0].plot(sol.t, sol.y[0, :], label='c = {}'.format(c))
         axs[1].plot(sol.t, sol.y[1, :], label='c = {}'.format(c))
         # Calculate the torque at each time step
@@ -69,7 +70,7 @@ def TimeAndPositionOfModelClosing_plot_c(theta_initial, theta_finishing, c_value
     axs[3].set_title('Torque of the damper vs time')
 
     for c in c_values:
-        sol = closingmodel(theta_initial, theta_finishing, speed_initial, T_stall, omega_max, gear_ratio, c, k_start, k_finish)
+        sol = closingmodel(theta_initial, theta_finishing, speed_initial, T_stall, omega_max, gear_ratio, c, k_start, k_finish, efficiency)
         axs[0].plot(sol.t, sol.y[0, :], label='c = {}'.format(c))
         axs[1].plot(sol.t, sol.y[1, :], label='c = {}'.format(c))
         # Calculate the torque at each time step
@@ -88,6 +89,6 @@ def TimeAndPositionOfModelClosing_plot_c(theta_initial, theta_finishing, c_value
     plt.show()
 
 TimeAndPositionOfModelOpening_plot_c(theta_i, theta_f, c_values_opening, k_start, k_finish)
-#TimeAndPositionOfModelClosing_plot_c(theta_f, theta_i, c_values_closing, k_start, k_finish)
+TimeAndPositionOfModelClosing_plot_c(theta_f, theta_i, c_values_closing, k_start, k_finish)
 
 
