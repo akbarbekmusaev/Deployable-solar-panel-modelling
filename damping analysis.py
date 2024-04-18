@@ -9,10 +9,10 @@ theta_i = 5 * (np.pi / 180)
 speed_initial = 0
 T_stall = 0.69
 omega_max = 3700
-gear_ratio = 270
-c_values_opening = [0]
-c_values_closing = [0]
-efficiency = 0.57
+gear_ratio = 370
+c_values_opening = [900]
+c_values_closing = [2500]
+efficiency = 0.73
 
 #08-020
 k_start = 0
@@ -88,7 +88,7 @@ def TimeAndPositionOfModelClosing_plot_c(theta_initial, theta_finishing, c_value
     plt.subplots_adjust(hspace=0.5)
     plt.show()
 
-TimeAndPositionOfModelOpening_plot_c(theta_i, theta_f, c_values_opening, k_start, k_finish)
+#TimeAndPositionOfModelOpening_plot_c(theta_i, theta_f, c_values_opening, k_start, k_finish)
 TimeAndPositionOfModelClosing_plot_c(theta_f, theta_i, c_values_closing, k_start, k_finish)
 
 

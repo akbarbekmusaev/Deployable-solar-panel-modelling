@@ -3,7 +3,7 @@ from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 
 # constants
-T = 100
+T = 1000
 g = 9.81  # m/s^2
 
 # Length and mass constants of base components
@@ -15,7 +15,7 @@ M_solarpanel = 11  # kg
 rho_beams = 0.71  # kg/m
 
 # Masses of components
-M_panels = 3 * M_solarpanel
+M_panels = 1 * M_solarpanel
 M_driving = rho_beams * L_shortbeam
 M_green = rho_beams * L_shortbeam
 M_blue = rho_beams * L_shortbeam
@@ -78,10 +78,10 @@ def centre_of_mass(theta):
     angle_blue = np.arctan(V_blue / H_blue) * 180 / np.pi
 
     # H centre of mass
-    H_cm = (M_solarpanel * (H_bottompanel + H_middlepanel + H_toppanel) + M_frame * H_frame + M_driving * H_driving + M_green * H_green + M_blue * H_blue) / M_total
+    H_cm = (M_solarpanel * (H_toppanel) + M_frame * H_frame + M_driving * H_driving + M_green * H_green + M_blue * H_blue) / M_total
 
     # V centre of mass
-    V_cm = (M_solarpanel * (V_bottompanel + V_middlepanel + V_toppanel) + M_frame * V_frame + M_driving * V_driving + M_green * V_green + M_blue * V_blue) / M_total
+    V_cm = (M_solarpanel * (V_toppanel) + M_frame * V_frame + M_driving * V_driving + M_green * V_green + M_blue * V_blue) / M_total
 
     # R centre of mass
     R_cm = np.sqrt(H_cm ** 2 + V_cm ** 2)

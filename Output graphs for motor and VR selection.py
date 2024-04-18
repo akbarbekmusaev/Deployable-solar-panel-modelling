@@ -10,11 +10,12 @@ theta_initial = 5 * (np.pi / 180)
 speed_initial = 0
 T_stall = 0.69
 omega_max = 3700
-gear_ratios = [270]  # List of gear ratios
+gear_ratios = [370]  # List of gear ratios
 c = 0 # Damping coefficient
 g = 9.81 # Acceleration due to gravity
 M_total = 39.248 # Total mass of the pend]
-efficiency = 1
+efficiency = 0.73 # Efficiency of the gearbox
+
 
 
 # Define function to plot time and position of model
@@ -69,8 +70,8 @@ def holding_ratio(R_cm, theta):
 # Main code
 sol = openingmodel(theta_initial, theta_finishing, speed_initial, T_stall, omega_max, gear_ratios[0], c, 0, 0, efficiency)  # Assuming gear_ratio[0] is used for simulation
 TimeAndPositionOfModel_plot(sol, theta_finishing, gear_ratios)
-total_powers = create_motor_plot(sol, gear_ratios)
-plot_total_power(gear_ratios, total_powers)
-print("Centre of mass at initial angle: ", centre_of_mass(theta_initial))
-print("Holding ratio at initial angle: ", holding_ratio(centre_of_mass(theta_initial), theta_initial))
+# total_powers = create_motor_plot(sol, gear_ratios)
+# plot_total_power(gear_ratios, total_powers)
+# print("Centre of mass at initial angle: ", centre_of_mass(theta_initial))
+# print("Holding ratio at initial angle: ", holding_ratio(centre_of_mass(theta_initial), theta_initial))
 
