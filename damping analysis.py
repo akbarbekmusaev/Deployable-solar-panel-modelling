@@ -9,9 +9,9 @@ theta_i = 5 * (np.pi / 180)
 speed_initial = 0
 T_stall = 0.69
 omega_max = 3700
-gear_ratio = 370
-c_values_opening = [900]
-c_values_closing = [2500]
+gear_ratio = 386.7
+c_values_opening = np.arange(0, 1000, 100)
+c_values_closing = np.arange(0, 3000, 100)
 efficiency = 0.73
 
 #08-020
@@ -88,7 +88,32 @@ def TimeAndPositionOfModelClosing_plot_c(theta_initial, theta_finishing, c_value
     plt.subplots_adjust(hspace=0.5)
     plt.show()
 
+def opening_analysis(c_values, theta_initial, theta_finishing, speed_initial, T_stall, omega_max, gear_ratio, k_start, k_finish, efficiency):
+    times = np.zeros(len(c_values))
+    for i, c in enumerate(c_values):
+        sol = openingmodel(theta_initial, theta_finishing, speed_initial, T_stall, omega_max, gear_ratio, c, k_start, k_finish, efficiency)
+        times[i] = sol.t[-1]
+
+    plt.figure(figsize=(10, 5))
+    plt.plot(c_values, times)
+    plt.xlabel('Damping Coefficient (Nm/rad/s)')
+    plt.ylabel('Opening Time (s)')
+    plt.show()
+
+def closing_analysis(c_values, theta_initial, theta_finishing, speed_initial, T_stall, omega_max, gear_ratio, k_start, k_finish, efficiency):
+    times = np.zeros(len(c_values))
+    for i, c in enumerate(c_values):
+        sol = closingmodel(theta_initial, theta_finishing, speed_initial, T_stall, omega_max, gear_ratio, c, k_start, k_finish, efficiency)
+        times[i] = sol.t[-1]
+
+    plt.figure(figsize=(10, 5))
+    plt.plot(c_values, times)
+    plt.xlabel('Damping Coefficient (Nm/rad/s)')
+    plt.ylabel('Closing Time (s)')
+    plt.show()
+
+
 #TimeAndPositionOfModelOpening_plot_c(theta_i, theta_f, c_values_opening, k_start, k_finish)
-TimeAndPositionOfModelClosing_plot_c(theta_f, theta_i, c_values_closing, k_start, k_finish)
-
-
+#TimeAndPositionOfModelClosing_plot_c(theta_f, theta_i, c_values_closing, k_start, k_finish)
+#opening_analysis(c_values_opening, theta_i, theta_f, speed_initial, T_stall, omega_max, gear_ratio, k_start, k_finish, efficiency)
+closing_analysis(c_values_closing, theta_f, theta_i, speed_initial, T_stall, omega_max, gear_ratio, k_start, k_finish, efficiency)
